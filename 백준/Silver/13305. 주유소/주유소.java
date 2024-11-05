@@ -1,3 +1,4 @@
+import java.math.BigInteger;
 import java.util.Scanner;
 
 public class Main {
@@ -17,9 +18,9 @@ public class Main {
 				oilPrices[i + 1] = oilPrices[i];
 			}
 		}
-		int ans = 0;
+		BigInteger ans = BigInteger.ZERO;
 		for (int i = 0; i < N - 1; i++) {
-			ans += distances[i] * oilPrices[i];
+			ans = ans.add(BigInteger.valueOf(distances[i]).multiply(BigInteger.valueOf(oilPrices[i])));
 		}
 		System.out.println(ans);
 	}
