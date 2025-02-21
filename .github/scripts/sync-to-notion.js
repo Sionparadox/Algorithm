@@ -1,12 +1,10 @@
 const { Client } = require('@notionhq/client');
-const fs = require('fs');
-const path = require('path');
 
 const notion = new Client({
   auth: process.env.NOTION_KEY,
 });
 
-async function uploadToNotion(filePath, content) {
+async function uploadToNotion(code, title) {
   try {
     await notion.pages.create({
       parent: {
@@ -17,16 +15,7 @@ async function uploadToNotion(filePath, content) {
           title: [
             {
               text: {
-                content: path.basename(filePath),
-              },
-            },
-          ],
-        },
-        Path: {
-          rich_text: [
-            {
-              text: {
-                content: filePath,
+                content: title,
               },
             },
           ],
@@ -41,7 +30,7 @@ async function uploadToNotion(filePath, content) {
             rich_text: [
               {
                 text: {
-                  content: content,
+                  content: code,
                 },
               },
             ],
@@ -49,27 +38,22 @@ async function uploadToNotion(filePath, content) {
         },
       ],
     });
-    console.log(`Successfully uploaded ${filePath} to Notion`);
+    console.log(`Successfully uploaded ${title} to Notion`);
   } catch (error) {
-    console.error(`Error uploading ${filePath}:`, error);
+    console.error(`Error uploading ${title}:`, error);
   }
 }
 
 async function main() {
-  const files = process.env.GITHUB_EVENT_PATH
-    ? require(process.env.GITHUB_EVENT_PATH)
-    : { commits: [] };
+  const code = process.env.CODE;
+  const title = process.env.TITLE;
 
-  for (const commit of files.commits) {
-    const javaFiles = commit.added
-      .concat(commit.modified)
-      .filter((file) => file.endsWith('.java'));
-
-    for (const file of javaFiles) {
-      const content = fs.readFileSync(file, 'utf8');
-      await uploadToNotion(file, content);
-    }
+  if (!code || !title) {
+    console.error('CODE or TITLE environment variable is missing');
+    process.exit(1);
   }
+
+  await uploadToNotion(code, title);
 }
 
 main().catch(console.error);
