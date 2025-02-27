@@ -1,4 +1,4 @@
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
@@ -6,12 +6,12 @@ public class Main {
 		Scanner sc = new Scanner(System.in);
 		int n = sc.nextInt();
 		String balls = sc.next();
-		LinkedList<Integer> ballLen = new LinkedList<>();
+		ArrayList<Integer> ballLen = new ArrayList<>();
 		ballLen.add(0);
 		char prev = balls.charAt(0);
 		for (char b : balls.toCharArray()) {
 			if (b == prev) {
-				ballLen.set(ballLen.size() - 1, ballLen.getLast() + 1);
+				ballLen.set(ballLen.size() - 1, ballLen.get(ballLen.size() - 1) + 1);
 			} else {
 				prev = b;
 				ballLen.add(1);
@@ -30,7 +30,7 @@ public class Main {
 				evenSum += ballLen.get(i);
 			}
 		}
-		oddSum += ballLen.size() % 2 == 0 ? 0 : Math.min(ballLen.getFirst(), ballLen.getLast());
+		oddSum += ballLen.size() % 2 == 0 ? 0 : Math.min(ballLen.get(0), ballLen.get(ballLen.size() - 1));
 		System.out.println(Math.min(evenSum, oddSum));
 	}
 }
