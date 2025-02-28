@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 2
+          fetch-depth: 0 # 전체 히스토리를 가져오도록 수정
 
       - name: Get changed files
         id: changed-files
@@ -21,15 +21,25 @@ jobs:
         with:
           files: |
             **.java
+          since_last_remote_commit: true # 마지막 원격 커밋 이후의 변경사항 확인
 
-      - name: List all changed files
+      - name: Debug changed files
         run: |
-          echo "All added files:"
-          echo "${{ steps.changed-files.outputs.added_files }}"
-          echo "All modified files:"
-          echo "${{ steps.changed-files.outputs.modified_files }}"
+          echo "=== Debug Information ==="
+          echo "Added files:"
+          for file in ${{ steps.changed-files.outputs.added_files }}; do
+            echo "$file"
+          done
+
+          echo "Modified files:"
+          for file in ${{ steps.changed-files.outputs.modified_files }}; do
+            echo "$file"
+          done
+
           echo "All changed files:"
-          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "$file"
+          done
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -43,5 +53,7 @@ jobs:
         env:
           NOTION_KEY: ${{ secrets.NOTION_KEY }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-          CHANGED_FILES: ${{ steps.changed-files.outputs.added_files }}
+          ADDED_FILES: ${{ steps.changed-files.outputs.added_files }}
+          MODIFIED_FILES: ${{ steps.changed-files.outputs.modified_files }}
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: node .github/scripts/sync-to-notion.js
