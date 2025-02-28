@@ -13,15 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # 전체 히스토리를 가져오도록 수정
+          fetch-depth: 0
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@v44
         with:
-          files: |
-            **.java
-          since_last_remote_commit: true # 마지막 원격 커밋 이후의 변경사항 확인
+          since_last_remote_commit: true
 
       - name: Debug changed files
         run: |
