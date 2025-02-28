@@ -28,13 +28,19 @@ jobs:
           echo "All changed files:"
           echo "${{ steps.changed-files.outputs.all_changed_files }}"
 
-      - name: make diff files
-        run: |
-          git diff -- HEAD^ HEAD >> myFile.txt
-
-      - name: read diff files
-        run: |
-          cat myFile.txt
+          - name: Get diff for added files
+          run: |
+            # 추가된 파일 목록을 가져와서 diff를 찾습니다
+            for file in ${{ steps.changed-files.outputs.added_files }}; do
+              echo "Getting diff for: $file"
+              git diff origin/main -- "$file" > "diff_$file.txt"  # diff를 파일로 저장
+            done
+            
+            # 생성된 diff 파일들을 출력
+            for file in ${{ steps.changed-files.outputs.added_files }}; do
+              echo "Diff for $file:"
+              cat "diff_$file.txt"
+            done
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
