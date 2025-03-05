@@ -30,10 +30,12 @@ jobs:
 
       - name: Get diff for added files
         run: |
-          for file in ${{ steps.changed-files.outputs.added_files }}; do
+          IFS=$'\n'  # 개행 문자를 구분자로 설정
+          for file in $(echo "${{ steps.changed-files.outputs.added_files }}"); do
             if [[ $file == *.java ]]; then
               echo "Getting diff for: $file"
-               git diff origin/main -- "$file" > "diff_$file.txt"
+              mkdir -p "$(dirname "diffs/${file}")"
+              git diff origin/main -- "$file" > "diffs/${file}.diff" || true
             fi
           done
 
