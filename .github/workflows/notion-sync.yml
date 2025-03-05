@@ -36,6 +36,8 @@ jobs:
               echo "Getting diff for: $file"
               mkdir -p "$(dirname "diffs/${file}")"
               git diff origin/main -- "$file" > "diffs/${file}.diff" || true
+              echo "Diff for $file:"
+              cat "diffs/${file}.diff"
             fi
           done
 
