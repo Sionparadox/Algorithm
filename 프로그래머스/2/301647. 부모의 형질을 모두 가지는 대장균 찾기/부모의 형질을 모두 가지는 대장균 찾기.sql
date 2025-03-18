@@ -1,0 +1,5 @@
+SELECT child.ID, child.GENOTYPE, origin.GENOTYPE as PARENT_GENOTYPE
+FROM ECOLI_DATA origin
+JOIN ECOLI_DATA child
+ON origin.ID = child.PARENT_ID and child.GENOTYPE & origin.GENOTYPE = origin.GENOTYPE
+ORDER BY 1;
