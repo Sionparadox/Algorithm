@@ -1,0 +1,7 @@
+SELECT origin.ID as ID, COUNT(child.ID) as CHILD_COUNT
+# SELECT *
+FROM ECOLI_DATA origin
+LEFT OUTER JOIN ECOLI_DATA child
+ON origin.ID = child.PARENT_ID
+GROUP BY origin.ID
+ORDER BY 1;
