@@ -5,7 +5,7 @@ const N = parseInt(input[0]);
 const S = input.slice(1).map((i) => i.split(' ').map(Number));
 
 let ans = Infinity;
-for (let i = 1; i < N; i++) {
+for (let i = 1; i < N / 2 + 1; i++) {
   makeCombine(0, [], i);
 }
 console.log(ans);
