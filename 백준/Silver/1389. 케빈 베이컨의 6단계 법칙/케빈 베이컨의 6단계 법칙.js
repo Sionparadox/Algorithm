@@ -22,10 +22,7 @@ for (let k = 1; k <= N; k++) {
         distance[i][j],
         distance[i][k] + distance[k][j]
       );
-      distance[j][i] = Math.min(
-        distance[j][i],
-        distance[j][k] + distance[k][i]
-      );
+      distance[j][i] = distance[i][j];
     }
   }
 }
