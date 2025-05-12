@@ -1,18 +1,18 @@
-from queue import PriorityQueue
+import heapq
 def solution(n, costs):
     answer = 0
     cnt = 0
     graph = [[] for _ in range(n)]
     visited = [False] * n
-    que = PriorityQueue()
     
     for u, v, w in costs:
         graph[u].append([v, w])
         graph[v].append([u, w])
     
-    que.put((0, 0))
-    while not que.empty() and cnt < n:
-        d, node = que.get()
+    pq = []
+    heapq.heappush(pq, (0,0))
+    while pq and cnt < n:
+        d, node = heapq.heappop(pq)
         if visited[node] : continue
         
         visited[node] = True
@@ -21,6 +21,6 @@ def solution(n, costs):
         
         for next, nextD in graph[node]:
             if visited[next] : continue
-            que.put((nextD, next))
+            heapq.heappush(pq, (nextD, next))
     
     return answer
