@@ -3,25 +3,28 @@ import heapq
 input = sys.stdin.readline
 
 N, M = map(int, input().split())
-order = [[x-1 for x in list(map(int, input().split()))] for _ in range(M)]
-graph = [[] for _ in range(N)]
-indegree = [0]*N
 
-for front, back in order:
-    indegree[back] += 1
-    graph[front].append(back)
+indegree = [0]*(N+1)
+graph = [[] for _ in range(N+1)]
+
+for _ in range(M):
+    s, e = map(int, input().split())
+    graph[s].append(e)
+    indegree[e] += 1
     
-answer = []
 pq = []
-for i in range(N):
+for i in range(1, N+1):
     if indegree[i] == 0:
         heapq.heappush(pq, i)
 
+answer = []
 while pq:
-    node = heapq.heappop(pq)
-    answer.append(node+1)
-    for next in graph[node]:
+    now = heapq.heappop(pq)
+    answer.append(now)
+    
+    for next in graph[now]:
         indegree[next] -= 1
         if indegree[next] == 0:
             heapq.heappush(pq, next)
-print(' '.join(map(str,answer)))
+    
+print(' '.join(map(str, answer)))
