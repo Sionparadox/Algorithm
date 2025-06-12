@@ -20,7 +20,7 @@ jobs:
           token: ${{ secrets.MY_TOKEN}}
           path: blog
       - name: Copy new md file
-        run: cp /tmp/문제번호.md blog/posts/Test/
+        run: cp /tmp/*.md blog/posts/Test/
       - name: Commit & Push
         run: |
           cd blog
