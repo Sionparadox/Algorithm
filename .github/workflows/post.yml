@@ -1,0 +1,17 @@
+name: Post to Blog
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run post.py
+        run: python .github/scripts/post.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
