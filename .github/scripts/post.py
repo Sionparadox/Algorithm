@@ -1,6 +1,7 @@
 import os
 import subprocess
 from pathlib import Path
+import re
 
 def get_changed_files():
     # github actions에서 제공하는 SHA 환경변수 사용
@@ -47,6 +48,20 @@ def log_merge_content(problem_path, code_filename):
     print("--- 합쳐질 내용 ---")
     print(merged)
     print("--- END ---\n")
+
+def make_number_md(readme_path):
+    with open(readme_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    # 첫 줄에서 문제번호 추출
+    first_line = content.splitlines()[0]
+    m = re.search(r'-\\s*(\\d+)', first_line)
+    if not m:
+        return None
+    number = m.group(1)
+    md_path = f'/tmp/{number}.md'
+    with open(md_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+    return md_path
 
 def main():
     changed_files = get_changed_files()
