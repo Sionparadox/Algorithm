@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 import re
 import codecs
+from datetime import datetime
 
 def get_changed_files():
     # git diff에서 한글 경로가 이스케이프되지 않도록 설정
@@ -53,18 +54,46 @@ def merge_code_to_readme(readme_path, code_path):
     return True
 
 def export_readme_to_number_md(readme_path):
-    print(f"\n=== Exporting README to number.md ===")
+    print(f"\n=== Exporting README to number.mdx ===")
     print(f"Reading from: {readme_path}")
     
     with open(readme_path, 'r', encoding='utf-8') as f:
         content = f.read()
-    first_line = content.splitlines()[0]
+    
+    # 첫 줄에서 제목과 문제 번호 추출
+    lines = content.splitlines()
+    first_line = lines[0]
+    title = first_line.replace('# ', '').strip()
+    
+    # 문제 번호 추출
     m = re.search(r'-\s*(\d+)', first_line)
     if not m:
         print("Could not find problem number in first line")
         return None
     number = m.group(1)
     print(f"Found problem number: {number}")
+    
+    # 현재 날짜 가져오기
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    
+    # 태그 추출
+    tags = []
+    for i, line in enumerate(lines):
+        if line.startswith('### 분류'):
+            if i + 2 < len(lines):  # 분류 다음 줄에 태그가 있다고 가정
+                tags_line = lines[i + 2].strip()
+                tags = [tag.strip() for tag in tags_line.split(',')]
+            break
+    
+    # 메타데이터 생성
+    metadata = f"""export const metadata = {{
+  title: '{title}',
+  date: '{current_date}',
+  tags: {tags},
+  description: '{title}',
+}};
+
+"""
     
     # md_output 디렉토리 사용
     workspace = os.environ.get('GITHUB_WORKSPACE', '.')
@@ -76,11 +105,13 @@ def export_readme_to_number_md(readme_path):
     output_dir.mkdir(exist_ok=True)
     print(f"Created output directory: {output_dir.exists()}")
     
-    md_path = output_dir / f'{number}.md'
+    # .mdx 확장자로 변경
+    md_path = output_dir / f'{number}.mdx'
     print(f"Writing to: {md_path}")
     
+    # 메타데이터와 원본 내용을 합쳐서 작성
     with open(md_path, 'w', encoding='utf-8') as f:
-        f.write(content)
+        f.write(metadata + content)
     print(f"Successfully wrote to {md_path}")
     return md_path
 
