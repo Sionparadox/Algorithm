@@ -60,11 +60,11 @@ def export_readme_to_number_md(readme_path):
     if not m:
         return None
     number = m.group(1)
-    # GITHUB_WORKSPACE를 사용하여 tmp 디렉토리 생성
+    # md_output 디렉토리 사용
     workspace = os.environ.get('GITHUB_WORKSPACE', '.')
-    tmp_dir = Path(workspace) / 'tmp'
-    tmp_dir.mkdir(exist_ok=True)
-    md_path = tmp_dir / f'{number}.md'
+    output_dir = Path(workspace) / 'md_output'
+    output_dir.mkdir(exist_ok=True)
+    md_path = output_dir / f'{number}.md'
     with open(md_path, 'w', encoding='utf-8') as f:
         f.write(content)
     return md_path
