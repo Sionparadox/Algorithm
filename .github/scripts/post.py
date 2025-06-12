@@ -31,30 +31,25 @@ def find_problem_pairs(changed_files):
         if 'README.md' in files and pyfile:
             yield Path('백준') / level / problem, pyfile
 
-def log_merge_content(problem_path, code_filename):
-    readme_path = problem_path / 'README.md'
-    code_path = problem_path / code_filename
+def merge_code_to_readme(readme_path, code_path):
     if not readme_path.exists() or not code_path.exists():
-        return
+        return False
     with open(readme_path, 'r', encoding='utf-8') as f:
         content = f.read().rstrip()
     with open(code_path, 'r', encoding='utf-8') as f:
         code = f.read().rstrip()
-    # 이미 ### 풀이가 있으면 덮어쓰기
     if '### 풀이' in content:
         content = content.split('### 풀이')[0].rstrip()
     merged = f"{content}\n\n### 풀이\n<code>\n{code}\n</code>\n"
-    print(f"[LOG] {problem_path}의 README.md에 {code_filename} 코드가 합쳐집니다.")
-    print("--- 합쳐질 내용 ---")
-    print(merged)
-    print("--- END ---\n")
+    with open(readme_path, 'w', encoding='utf-8') as f:
+        f.write(merged)
+    return True
 
-def make_number_md(readme_path):
+def export_readme_to_number_md(readme_path):
     with open(readme_path, 'r', encoding='utf-8') as f:
         content = f.read()
-    # 첫 줄에서 문제번호 추출
     first_line = content.splitlines()[0]
-    m = re.search(r'-\\s*(\\d+)', first_line)
+    m = re.search(r'-\s*(\d+)', first_line)
     if not m:
         return None
     number = m.group(1)
@@ -66,7 +61,11 @@ def make_number_md(readme_path):
 def main():
     changed_files = get_changed_files()
     for problem_path, code_filename in find_problem_pairs(changed_files):
-        log_merge_content(problem_path, code_filename)
+        readme_path = problem_path / 'README.md'
+        code_path = problem_path / code_filename
+        merged = merge_code_to_readme(readme_path, code_path)
+        if merged:
+            export_readme_to_number_md(readme_path)
 
 if __name__ == '__main__':
     main()
