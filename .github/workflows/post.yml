@@ -19,8 +19,8 @@ jobs:
           python .github/scripts/post.py
           echo "=== Debug: Listing md_output directory ==="
           ls -la $GITHUB_WORKSPACE/md_output
-          echo "=== Debug: Checking if any .md files exist ==="
-          find $GITHUB_WORKSPACE/md_output -name "*.md"
+          echo "=== Debug: Checking if any .mdx files exist ==="
+          find $GITHUB_WORKSPACE/md_output -name "*.mdx"
 
       - name: Checkout blog repo
         uses: actions/checkout@v3
@@ -29,11 +29,11 @@ jobs:
           token: ${{ secrets.MY_TOKEN}}
           path: blog
 
-      - name: Copy new md file
+      - name: Copy new mdx file
         run: |
           echo "=== Debug: Before copying ==="
           ls -la $GITHUB_WORKSPACE/md_output
-          cp $GITHUB_WORKSPACE/md_output/*.md blog/posts/Test/ || echo "No .md files found in md_output"
+          cp $GITHUB_WORKSPACE/md_output/*.mdx blog/posts/Test/ || echo "No .mdx files found in md_output"
           echo "=== Debug: After copying ==="
           ls -la blog/posts/Test/
 
