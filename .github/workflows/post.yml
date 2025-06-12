@@ -11,16 +11,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: Run post.py
         run: python .github/scripts/post.py
+
       - name: Checkout blog repo
         uses: actions/checkout@v3
         with:
           repository: Sionparadox/Sionparadox.github.io
           token: ${{ secrets.MY_TOKEN}}
           path: blog
+
       - name: Copy new md file
         run: cp /tmp/*.md blog/posts/Test/
+
       - name: Commit & Push
         run: |
           cd blog
