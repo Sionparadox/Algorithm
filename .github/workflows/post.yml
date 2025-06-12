@@ -13,7 +13,12 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run post.py
-        run: python .github/scripts/post.py
+        run: |
+          python .github/scripts/post.py
+          echo "=== Debug: Listing /tmp directory ==="
+          ls -la /tmp
+          echo "=== Debug: Checking if any .md files exist ==="
+          find /tmp -name "*.md"
 
       - name: Checkout blog repo
         uses: actions/checkout@v3
@@ -23,7 +28,12 @@ jobs:
           path: blog
 
       - name: Copy new md file
-        run: cp /tmp/*.md blog/posts/Test/
+        run: |
+          echo "=== Debug: Before copying ==="
+          ls -la /tmp
+          cp /tmp/*.md blog/posts/Test/ || echo "No .md files found in /tmp"
+          echo "=== Debug: After copying ==="
+          ls -la blog/posts/Test/
 
       - name: Commit & Push
         run: |
