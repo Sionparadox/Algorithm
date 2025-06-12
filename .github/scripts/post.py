@@ -53,30 +53,59 @@ def merge_code_to_readme(readme_path, code_path):
     return True
 
 def export_readme_to_number_md(readme_path):
+    print(f"\n=== Exporting README to number.md ===")
+    print(f"Reading from: {readme_path}")
+    
     with open(readme_path, 'r', encoding='utf-8') as f:
         content = f.read()
     first_line = content.splitlines()[0]
     m = re.search(r'-\s*(\d+)', first_line)
     if not m:
+        print("Could not find problem number in first line")
         return None
     number = m.group(1)
+    print(f"Found problem number: {number}")
+    
     # md_output 디렉토리 사용
     workspace = os.environ.get('GITHUB_WORKSPACE', '.')
+    print(f"GITHUB_WORKSPACE: {workspace}")
     output_dir = Path(workspace) / 'md_output'
+    print(f"Output directory: {output_dir}")
+    print(f"Output directory exists: {output_dir.exists()}")
+    
     output_dir.mkdir(exist_ok=True)
+    print(f"Created output directory: {output_dir.exists()}")
+    
     md_path = output_dir / f'{number}.md'
+    print(f"Writing to: {md_path}")
+    
     with open(md_path, 'w', encoding='utf-8') as f:
         f.write(content)
+    print(f"Successfully wrote to {md_path}")
     return md_path
 
 def main():
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"GITHUB_WORKSPACE: {os.environ.get('GITHUB_WORKSPACE', '.')}")
+    
     changed_files = get_changed_files()
+    print(f"Changed files: {changed_files}")
+    
     for problem_path, code_filename in find_problem_pairs(changed_files):
+        print(f"\nProcessing: {problem_path} / {code_filename}")
         readme_path = problem_path / 'README.md'
         code_path = problem_path / code_filename
+        print(f"Paths: readme={readme_path}, code={code_path}")
+        
         merged = merge_code_to_readme(readme_path, code_path)
+        print(f"Merge result: {merged}")
+        
         if merged:
-            export_readme_to_number_md(readme_path)
+            md_path = export_readme_to_number_md(readme_path)
+            if md_path:
+                print(f"Successfully exported to {md_path}")
+            else:
+                print("Failed to export README to number.md")
 
 if __name__ == '__main__':
     main()

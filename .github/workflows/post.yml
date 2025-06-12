@@ -16,9 +16,9 @@ jobs:
         run: |
           python .github/scripts/post.py
           echo "=== Debug: Listing md_output directory ==="
-          ls -la ./md_output
+          ls -la $GITHUB_WORKSPACE/md_output
           echo "=== Debug: Checking if any .md files exist ==="
-          find ./md_output -name "*.md"
+          find $GITHUB_WORKSPACE/md_output -name "*.md"
 
       - name: Checkout blog repo
         uses: actions/checkout@v3
@@ -30,8 +30,8 @@ jobs:
       - name: Copy new md file
         run: |
           echo "=== Debug: Before copying ==="
-          ls -la ./md_output
-          cp ./md_output/*.md blog/posts/Test/ || echo "No .md files found in md_output"
+          ls -la $GITHUB_WORKSPACE/md_output
+          cp $GITHUB_WORKSPACE/md_output/*.md blog/posts/Test/ || echo "No .md files found in md_output"
           echo "=== Debug: After copying ==="
           ls -la blog/posts/Test/
 
