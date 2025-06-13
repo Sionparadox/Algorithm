@@ -22,6 +22,7 @@ for ball in balls:
         answer.append('Y')
     else:
         answer.append('N')
+
 print(' '.join(answer))
 '''
 dp[i] : i무게의 구슬까지 탐색했을 때 가능한 무게들
