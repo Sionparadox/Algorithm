@@ -24,29 +24,29 @@ jobs:
           if [ ! -d "$GITHUB_WORKSPACE/md_output" ] || [ -z "$(ls -A $GITHUB_WORKSPACE/md_output)" ]; then
             echo "No MDX files generated. Skipping blog update."
             echo "has_mdx=false" >> $GITHUB_OUTPUT
-          else
-            echo "MDX files found. Proceeding with blog update."
-            echo "has_mdx=true" >> $GITHUB_OUTPUT
-            ls -la $GITHUB_WORKSPACE/md_output
-            echo "=== Debug: Checking if any .mdx files exist ==="
-            find $GITHUB_WORKSPACE/md_output -name "*.mdx"
+            exit 0
           fi
+          echo "MDX files found. Proceeding with blog update."
+          echo "has_mdx=true" >> $GITHUB_OUTPUT
+          ls -la $GITHUB_WORKSPACE/md_output
+          echo "=== Debug: Checking if any .mdx files exist ==="
+          find $GITHUB_WORKSPACE/md_output -name "*.mdx"
 
       - name: Upload MDX files
-        if: steps.check_mdx.outputs.has_mdx == 'true'
-        uses: actions/upload-artifact@v3
+        if: success() && steps.check_mdx.outputs.has_mdx == 'true'
+        uses: actions/upload-artifact@v4
         with:
           name: mdx-files
           path: ${{ github.workspace }}/md_output/*.mdx
           if-no-files-found: error
 
   update-blog:
-    needs: check-mdx
-    if: needs.check-mdx.outputs.has_mdx == 'true'
+    needs: [check-mdx]
+    if: success() && needs.check-mdx.outputs.has_mdx == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Download MDX files
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: mdx-files
           path: mdx-files
