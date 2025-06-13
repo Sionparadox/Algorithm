@@ -32,19 +32,24 @@ jobs:
             find $GITHUB_WORKSPACE/md_output -name "*.mdx"
           fi
 
+      - name: Upload MDX files
+        if: steps.check_mdx.outputs.has_mdx == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: mdx-files
+          path: ${{ github.workspace }}/md_output/*.mdx
+          if-no-files-found: error
+
   update-blog:
     needs: check-mdx
     if: needs.check-mdx.outputs.has_mdx == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Download MDX files
+        uses: actions/download-artifact@v3
         with:
-          fetch-depth: 2
-
-      - name: Copy MDX files
-        run: |
-          cp $GITHUB_WORKSPACE/md_output/*.mdx $GITHUB_WORKSPACE/
+          name: mdx-files
+          path: mdx-files
 
       - name: Checkout blog repo
         uses: actions/checkout@v3
@@ -56,8 +61,8 @@ jobs:
       - name: Copy new mdx file
         run: |
           echo "=== Debug: Before copying ==="
-          ls -la $GITHUB_WORKSPACE
-          cp $GITHUB_WORKSPACE/*.mdx blog/posts/Problems/ || echo "No .mdx files found"
+          ls -la mdx-files
+          cp mdx-files/*.mdx blog/posts/Problems/ || echo "No .mdx files found"
           echo "=== Debug: After copying ==="
           ls -la blog/posts/Problems/
 
