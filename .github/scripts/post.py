@@ -55,8 +55,14 @@ def merge_code_to_readme(readme_path, code_path):
     return True
 
 def convert_html_to_markdown(content):
-    # <p> 태그 제거
-    content = re.sub(r'<p>(.*?)</p>', r'\1', content, flags=re.DOTALL)
+    # MathJax 관련 태그 제거
+    content = re.sub(r'<mjx-container[^>]*>.*?</mjx-container>', '', content, flags=re.DOTALL)
+    content = re.sub(r'<mjx-math[^>]*>.*?</mjx-math>', '', content, flags=re.DOTALL)
+    content = re.sub(r'<mjx-assistive-mml[^>]*>.*?</mjx-assistive-mml>', '', content, flags=re.DOTALL)
+    content = re.sub(r'<span[^>]*class="no-mathjax[^>]*>.*?</span>', '', content, flags=re.DOTALL)
+    
+    # style 속성이 있는 태그에서 style 속성 제거
+    content = re.sub(r'style="[^"]*"', '', content)
     
     # 이미지 태그를 마크다운 문법으로 변경
     content = re.sub(r'<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>', r'![\2](\1)', content)
@@ -64,11 +70,17 @@ def convert_html_to_markdown(content):
     # 그림 설명을 마크다운 문법으로 변경
     content = re.sub(r'<strong>그림\s*(\d+)</strong>:\s*(.*?)(?=<|$)', r'**그림 \1**: \2', content, flags=re.DOTALL)
     
-    # 불필요한 스타일 속성 제거
-    content = re.sub(r'style="[^"]*"', '', content)
+    # 모든 HTML 태그 제거 (단, 이미지와 그림 설명은 이미 처리됨)
+    content = re.sub(r'<[^>]+>', '', content)
     
     # HTML 엔티티 디코딩
     content = html.unescape(content)
+    
+    # 연속된 빈 줄 제거
+    content = re.sub(r'\n{3,}', '\n\n', content)
+    
+    # 앞뒤 공백 제거
+    content = content.strip()
     
     return content
 
