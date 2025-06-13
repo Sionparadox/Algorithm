@@ -23,4 +23,5 @@ right.sort()
 ans = 0
 for val in left:
     ans += bisect_right(right, C-val)
+
 print(ans)
