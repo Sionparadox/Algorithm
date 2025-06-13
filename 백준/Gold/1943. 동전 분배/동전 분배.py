@@ -26,7 +26,6 @@ for _ in range(3):
     for coin in coins:
         for i in range(S, coin-1, -1):
             dp[i] = dp[i] | dp[i-coin]
-    
     print(1 if dp[S] else 0)
 
 '''
