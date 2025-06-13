@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 import codecs
 from datetime import datetime
+import html
 
 def get_changed_files():
     # git diff에서 한글 경로가 이스케이프되지 않도록 설정
@@ -53,12 +54,33 @@ def merge_code_to_readme(readme_path, code_path):
         f.write(merged)
     return True
 
+def convert_html_to_markdown(content):
+    # <p> 태그 제거
+    content = re.sub(r'<p>(.*?)</p>', r'\1', content, flags=re.DOTALL)
+    
+    # 이미지 태그를 마크다운 문법으로 변경
+    content = re.sub(r'<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>', r'![\2](\1)', content)
+    
+    # 그림 설명을 마크다운 문법으로 변경
+    content = re.sub(r'<strong>그림\s*(\d+)</strong>:\s*(.*?)(?=<|$)', r'**그림 \1**: \2', content, flags=re.DOTALL)
+    
+    # 불필요한 스타일 속성 제거
+    content = re.sub(r'style="[^"]*"', '', content)
+    
+    # HTML 엔티티 디코딩
+    content = html.unescape(content)
+    
+    return content
+
 def export_readme_to_number_md(readme_path):
     print(f"\n=== Exporting README to number.mdx ===")
     print(f"Reading from: {readme_path}")
     
     with open(readme_path, 'r', encoding='utf-8') as f:
         content = f.read()
+    
+    # HTML 태그를 마크다운으로 변환
+    content = convert_html_to_markdown(content)
     
     # 첫 줄에서 제목과 문제 번호 추출
     lines = content.splitlines()
