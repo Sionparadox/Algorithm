@@ -33,15 +33,15 @@ jobs:
         run: |
           echo "=== Debug: Before copying ==="
           ls -la $GITHUB_WORKSPACE/md_output
-          cp $GITHUB_WORKSPACE/md_output/*.mdx blog/posts/Test/ || echo "No .mdx files found in md_output"
+          cp $GITHUB_WORKSPACE/md_output/*.mdx blog/posts/Problems/ || echo "No .mdx files found in md_output"
           echo "=== Debug: After copying ==="
-          ls -la blog/posts/Test/
+          ls -la blog/posts/Problems/
 
       - name: Commit & Push
         run: |
           cd blog
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add posts/Test/
+          git config user.name "Sionparadox"
+          git config user.email "sion9999@naver.com"
+          git add posts/Problems/
           git commit -m "Add new solved problem post"
           git push
