@@ -125,8 +125,8 @@ def export_readme_to_number_md(readme_path):
     number = m.group(1)
     print(f"Found problem number: {number}")
     
-    # 현재 날짜 가져오기
-    current_date = datetime.now().strftime('%Y-%m-%d')
+    # 현재 날짜와 시간 가져오기 (YYYY-MM-DD HH:MM:SS 형식)
+    current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
     # 태그 추출
     tags = []
