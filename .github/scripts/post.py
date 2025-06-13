@@ -61,11 +61,29 @@ def convert_html_to_markdown(content):
     content = re.sub(r'<mjx-assistive-mml[^>]*>.*?</mjx-assistive-mml>', '', content, flags=re.DOTALL)
     content = re.sub(r'<span[^>]*class="no-mathjax[^>]*>.*?</span>', '', content, flags=re.DOTALL)
     
-    # style 속성이 있는 태그에서 style 속성 제거
-    content = re.sub(r'style="[^"]*"', '', content)
+    # style 속성이 있는 p 태그에서 이미지 추출
+    def replace_image_in_p(match):
+        img_tag = match.group(1)
+        # 이미지 태그에서 src 추출
+        src_match = re.search(r'src="([^"]*)"', img_tag)
+        if src_match:
+            src = src_match.group(1)
+            # alt가 비어있으면 "그림"으로 대체
+            alt_match = re.search(r'alt="([^"]*)"', img_tag)
+            alt = alt_match.group(1) if alt_match and alt_match.group(1) else "그림"
+            return f"\n\n![{alt}]({src})\n\n"
+        return ""
     
-    # 이미지 태그를 마크다운 문법으로 변경
-    content = re.sub(r'<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>', r'![\2](\1)', content)
+    # style 속성이 있는 p 태그에서 이미지 처리
+    content = re.sub(r'<p[^>]*style="[^"]*"[^>]*>(<img[^>]*>)</p>', replace_image_in_p, content, flags=re.DOTALL)
+    
+    # 일반 이미지 태그를 마크다운 문법으로 변경 (p 태그 밖에 있는 경우)
+    def replace_image(match):
+        src = match.group(1)
+        alt = match.group(2) if match.group(2) else "그림"
+        return f"\n\n![{alt}]({src})\n\n"
+    
+    content = re.sub(r'<img[^>]*src="([^"]*)"[^>]*(?:alt="([^"]*)")?[^>]*>', replace_image, content)
     
     # 그림 설명을 마크다운 문법으로 변경
     content = re.sub(r'<strong>그림\s*(\d+)</strong>:\s*(.*?)(?=<|$)', r'**그림 \1**: \2', content, flags=re.DOTALL)
@@ -76,7 +94,7 @@ def convert_html_to_markdown(content):
     # HTML 엔티티 디코딩
     content = html.unescape(content)
     
-    # 연속된 빈 줄 제거
+    # 연속된 빈 줄 제거 (최대 2개로)
     content = re.sub(r'\n{3,}', '\n\n', content)
     
     # 앞뒤 공백 제거
