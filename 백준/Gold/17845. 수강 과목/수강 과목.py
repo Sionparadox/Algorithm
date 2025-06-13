@@ -18,6 +18,7 @@ for k in range(1,K+1):
         dp[i] = max(dp[i], dp[i-tm]+imp)
 
 print(dp[N])
+
 '''
 dp[i] : i 공부시간으로 얻을 수 있는 최대 중요도
 '''
