@@ -6,7 +6,35 @@ on:
       - main
 
 jobs:
-  post:
+  check-mdx:
+    runs-on: ubuntu-latest
+    outputs:
+      has_mdx: ${{ steps.check_mdx.outputs.has_mdx }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Check MDX files
+        id: check_mdx
+        run: |
+          python .github/scripts/post.py
+          echo "=== Debug: Listing md_output directory ==="
+          if [ ! -d "$GITHUB_WORKSPACE/md_output" ] || [ -z "$(ls -A $GITHUB_WORKSPACE/md_output)" ]; then
+            echo "No MDX files generated. Skipping blog update."
+            echo "has_mdx=false" >> $GITHUB_OUTPUT
+          else
+            echo "MDX files found. Proceeding with blog update."
+            echo "has_mdx=true" >> $GITHUB_OUTPUT
+            ls -la $GITHUB_WORKSPACE/md_output
+            echo "=== Debug: Checking if any .mdx files exist ==="
+            find $GITHUB_WORKSPACE/md_output -name "*.mdx"
+          fi
+
+  update-blog:
+    needs: check-mdx
+    if: needs.check-mdx.outputs.has_mdx == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -14,26 +42,9 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Run post.py
-        id: check_mdx
+      - name: Copy MDX files
         run: |
-          python .github/scripts/post.py
-          echo "=== Debug: Listing md_output directory ==="
-          if [ ! -d "$GITHUB_WORKSPACE/md_output" ] || [ -z "$(ls -A $GITHUB_WORKSPACE/md_output)" ]; then
-            echo "No MDX files generated. Skipping blog update."
-            echo "should_exit=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          echo "should_exit=false" >> $GITHUB_OUTPUT
-          ls -la $GITHUB_WORKSPACE/md_output
-          echo "=== Debug: Checking if any .mdx files exist ==="
-          find $GITHUB_WORKSPACE/md_output -name "*.mdx"
-
-      - name: Skip remaining steps
-        if: steps.check_mdx.outputs.should_exit == 'true'
-        run: |
-          echo "No MDX files to process. Skipping blog update."
-          exit 0
+          cp $GITHUB_WORKSPACE/md_output/*.mdx $GITHUB_WORKSPACE/
 
       - name: Checkout blog repo
         uses: actions/checkout@v3
@@ -45,8 +56,8 @@ jobs:
       - name: Copy new mdx file
         run: |
           echo "=== Debug: Before copying ==="
-          ls -la $GITHUB_WORKSPACE/md_output
-          cp $GITHUB_WORKSPACE/md_output/*.mdx blog/posts/Problems/ || echo "No .mdx files found in md_output"
+          ls -la $GITHUB_WORKSPACE
+          cp $GITHUB_WORKSPACE/*.mdx blog/posts/Problems/ || echo "No .mdx files found"
           echo "=== Debug: After copying ==="
           ls -la blog/posts/Problems/
 
