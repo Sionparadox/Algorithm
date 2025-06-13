@@ -18,6 +18,10 @@ jobs:
         run: |
           python .github/scripts/post.py
           echo "=== Debug: Listing md_output directory ==="
+          if [ ! -d "$GITHUB_WORKSPACE/md_output" ] || [ -z "$(ls -A $GITHUB_WORKSPACE/md_output)" ]; then
+            echo "No MDX files generated. Exiting workflow."
+            exit 0
+          fi
           ls -la $GITHUB_WORKSPACE/md_output
           echo "=== Debug: Checking if any .mdx files exist ==="
           find $GITHUB_WORKSPACE/md_output -name "*.mdx"
