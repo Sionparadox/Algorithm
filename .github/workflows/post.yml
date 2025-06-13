@@ -15,16 +15,25 @@ jobs:
           fetch-depth: 2
 
       - name: Run post.py
+        id: check_mdx
         run: |
           python .github/scripts/post.py
           echo "=== Debug: Listing md_output directory ==="
           if [ ! -d "$GITHUB_WORKSPACE/md_output" ] || [ -z "$(ls -A $GITHUB_WORKSPACE/md_output)" ]; then
             echo "No MDX files generated. Exiting workflow."
+            echo "should_exit=true" >> $GITHUB_OUTPUT
             exit 0
           fi
+          echo "should_exit=false" >> $GITHUB_OUTPUT
           ls -la $GITHUB_WORKSPACE/md_output
           echo "=== Debug: Checking if any .mdx files exist ==="
           find $GITHUB_WORKSPACE/md_output -name "*.mdx"
+
+      - name: Check if should exit
+        if: steps.check_mdx.outputs.should_exit == 'true'
+        run: |
+          echo "No MDX files to process. Stopping workflow."
+          exit 1
 
       - name: Checkout blog repo
         uses: actions/checkout@v3
