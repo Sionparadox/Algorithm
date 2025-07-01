@@ -13,21 +13,26 @@ def count_piece(pizza):
     if sum(pizza)<=K:
         res[sum(pizza)] = 1
     
-    arr = pizza+pizza[:-2]
+    prefix = [0]*(2*L+1)
+    for i in range(2*L):
+        prefix[i+1] = prefix[i] + pizza[i % L]
+    
     for l in range(1, L):
         for i in range(L):
-            size = sum(arr[i:i+l])
+            size = prefix[i+l] - prefix[i]
             if size <= K:
                 res[size] += 1
-
     return res
 
 pieceA = count_piece(A)
 pieceB = count_piece(B)
 answer = pieceA[K] + pieceB[K]
 
-for k in range(1, K):
-    answer += pieceA[k]*pieceB[K-k]
+for k, cnt in pieceA.items():
+    if k == K:
+        continue
+    
+    answer += cnt*pieceB[K-k]
 
 print(answer)
 
