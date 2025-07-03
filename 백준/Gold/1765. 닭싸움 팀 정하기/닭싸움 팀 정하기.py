@@ -5,9 +5,6 @@ input = sys.stdin.readline
 N = int(input())
 M = int(input())
 
-enemy = defaultdict(list)
-parent = [x for x in range(N+1)]
-
 def find(node):
     if node == parent[node]:
         return node
@@ -18,7 +15,9 @@ def union(u, v):
     rootU, rootV = find(u), find(v)
     if rootU != rootV:
         parent[rootV] = rootU
-
+        
+enemy = defaultdict(list)
+parent = [x for x in range(N+1)]
 for _ in range(M):
     type, u, v = input().split()
     u, v = int(u), int(v)
