@@ -20,11 +20,11 @@ def side(arr):
 def grow():
     for i in range(1, M):
         for j in range(1, M):
-            board[i][j] = max(board[i-1][j], board[i][j-1])
+            board[i][j] = max(board[i-1][j], board[i][j-1], board[i-1][j-1])
 
 for _ in range(N):
     arr = list(map(int, input().split()))
     side(arr)
-    grow()
+grow()
 
 print('\n'.join(' '.join(map(str,row)) for row in board))
