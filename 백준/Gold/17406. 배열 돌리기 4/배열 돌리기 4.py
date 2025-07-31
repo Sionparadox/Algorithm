@@ -24,17 +24,17 @@ def rotate(r, c, depth, ar):
 
 def DFS(arr, visit):
     global answer
-    if len(visit) == K:
+    if visit == (1<<K)-1:
         answer = min(answer, min(sum(row) for row in arr))
         return
     
     copied = [row[:] for row in arr]
     for i in range(K):
-        if str(i) in visit:
+        if (1<<i) & visit:
             continue
         r, c, depth = cmd[i]
-        DFS(rotate(r, c, depth, copied), visit+str(i))
+        DFS(rotate(r, c, depth, copied), visit | (1<<i))
     
 answer = float('inf')   
-DFS(board, '')
+DFS(board, 0)
 print(answer)
