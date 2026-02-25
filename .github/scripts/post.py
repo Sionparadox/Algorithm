@@ -99,8 +99,19 @@ def convert_html_to_markdown(content):
     
     # 앞뒤 공백 제거
     content = content.strip()
-    
+
     return content
+
+def escape_curly_for_mdx(content):
+    """MDX에서 중괄호가 JSX로 인식되지 않도록 코드 블록 밖에서만 { → {/ , } → }/ 로 치환"""
+    parts = re.split(r'(```[\s\S]*?```)', content)
+    out = []
+    for i, part in enumerate(parts):
+        if part.startswith('```') and part.endswith('```'):
+            out.append(part)
+        else:
+            out.append(part.replace('{', '{/').replace('}', '}/'))
+    return ''.join(out)
 
 def export_readme_to_number_md(readme_path):
     print(f"\n=== Exporting README to number.mdx ===")
@@ -161,6 +172,9 @@ def export_readme_to_number_md(readme_path):
     md_path = output_dir / f'{number}.mdx'
     print(f"Writing to: {md_path}")
     
+    # MDX에서 중괄호가 JSX로 인식되지 않도록 이스케이프
+    content = escape_curly_for_mdx(content)
+
     # 메타데이터와 원본 내용을 합쳐서 작성
     with open(md_path, 'w', encoding='utf-8') as f:
         f.write(metadata + content)
