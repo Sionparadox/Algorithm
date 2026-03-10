@@ -1,5 +1,6 @@
 import sys
 from collections import deque
+sys.setrecursionlimit(10**6)
 input = sys.stdin.readline
 
 N, K = map(int, input().split())
@@ -25,6 +26,7 @@ def union(u, v):
     return True
 
 queue = deque(start)
+
 
 directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 answer = 0
