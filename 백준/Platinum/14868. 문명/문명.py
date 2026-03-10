@@ -5,6 +5,7 @@ input = sys.stdin.readline
 
 N, K = map(int, input().split())
 parent = [x for x in range(K)]
+size = [1]*K
 start = []
 lands = [[-1]*N for _ in range(N)]
 for i in range(K):
@@ -22,8 +23,10 @@ def union(u, v):
     u, v = find(u), find(v)
     if u == v:
         return False
-    
+    if size[u] < size[v]:
+        u, v = v, u
     parent[v] = u
+    size[u] += size[v]
     return True
 
 directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
