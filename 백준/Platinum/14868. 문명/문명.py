@@ -22,51 +22,54 @@ def union(u, v):
     u, v = find(u), find(v)
     if u == v:
         return False
+    
     parent[v] = u
     return True
 
+directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 queue = deque(start)
 
+cnt = 0
 
-directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+def check(r, c):
+    curr = lands[r][c]
+    res = 0
+    for dr, dc in directions:
+        nr, nc = r+dr, c+dc
+        if nr<0 or nr>=N or nc<0 or nc>=N:
+            continue
+        if lands[nr][nc] != -1 and lands[nr][nc] != curr:
+            if union(curr, lands[nr][nc]):
+                res += 1
+    return res
+
+for r, c in start:
+    cnt += check(r, c)
+
+if cnt == K-1:
+    print(0)
+    exit(0)
+
 answer = 0
-cnt = K
 while queue:
     answer += 1
     for _ in range(len(queue)):
         r, c = queue.popleft()
-        civil = lands[r][c]
         for dr, dc in directions:
             nr, nc = r+dr, c+dc
             if nr<0 or nr>=N or nc<0 or nc>=N:
                 continue
-            target = lands[nr][nc]
-            if target == civil:
-                continue
-            if target == -1:
-                lands[nr][nc] = civil
+            if lands[nr][nc] == -1:
+                lands[nr][nc] = lands[r][c]
                 queue.append((nr, nc))
-            
-            elif target < civil:
-                if union(target, civil):
-                    cnt -= 1
-                    if cnt == 1:
-                        print(answer)
-                        exit(0)
-            
-            else:
-                if union(target, civil):
-                    cnt -= 1
-                    if cnt == 1:
-                        print(answer-1)
-                        exit(0)
-                    
+                cnt += check(nr, nc)
+                if cnt == K-1:
+                    print(answer)
+                    exit(0)
+                
+
 
 '''
 Leveling BFS로 문명 확장
-이후 분리집합으로 문명 합치기
--> 문명이 올해 확장해서 겹쳐서 만난건지 딱 만난건지 확인 필요
-queue에 항상 더 작은 번호의 문명이 먼저 들어가므로 확장할때 번호 대소관계로 유추 가능
-- 확장한 땅이 더 작은 마킹이 있으면 이번턴에 겹치게 만난것
-- 확장한 땅에 더 큰 마킹이 있으면 전턴에 딱 만났었다는 것
+확장한 위치 주변에 다른 문명이 있는지 검사
 '''
