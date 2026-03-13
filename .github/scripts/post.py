@@ -7,15 +7,17 @@ from datetime import datetime
 import html
 
 def get_changed_files():
-    # git diff에서 한글 경로가 이스케이프되지 않도록 설정
-    subprocess.run(['git', 'config', 'core.quotepath', 'false'])
     before = os.environ.get('GITHUB_BASE_SHA')
     after = os.environ.get('GITHUB_SHA')
     if not before or not after:
         before = 'HEAD^'
         after = 'HEAD'
-    result = subprocess.run(['git', 'diff', '--name-only', f'{before}', f'{after}'],
-                           capture_output=True, text=True, encoding='utf-8')
+    result = subprocess.run(
+        ['git', '-c', 'core.quotepath=false', 'diff', '--name-only', before, after],
+        capture_output=True,
+        text=True,
+        encoding='utf-8'
+    )
     files = result.stdout.strip().split('\n')
     # 큰따옴표 제거 및 빈 문자열 필터링
     files = [f.strip('"') for f in files if f.strip()]
@@ -103,15 +105,25 @@ def convert_html_to_markdown(content):
     return content
 
 def escape_curly_for_mdx(content):
-    """MDX에서 중괄호가 JSX로 인식되지 않도록 코드 블록 밖에서만 { → {/ , } → }/ 로 치환"""
-    parts = re.split(r'(```[\s\S]*?```)', content)
-    out = []
-    for i, part in enumerate(parts):
+    """MDX에서 중괄호가 JSX로 인식되지 않도록 코드 블록/인라인 코드 밖에서만 이스케이프"""
+    fence_parts = re.split(r'(```[\s\S]*?```)', content)
+    escaped_parts = []
+
+    for part in fence_parts:
         if part.startswith('```') and part.endswith('```'):
-            out.append(part)
-        else:
-            out.append(part.replace('{', '{/').replace('}', '}/'))
-    return ''.join(out)
+            escaped_parts.append(part)
+            continue
+
+        inline_parts = re.split(r'(`[^`\n]+`)', part)
+        for inline in inline_parts:
+            if inline.startswith('`') and inline.endswith('`'):
+                escaped_parts.append(inline)
+            else:
+                inline = re.sub(r'(?<!\\)\{', r'\\{', inline)
+                inline = re.sub(r'(?<!\\)\}', r'\\}', inline)
+                escaped_parts.append(inline)
+
+    return ''.join(escaped_parts)
 
 def export_readme_to_number_md(readme_path):
     print(f"\n=== Exporting README to number.mdx ===")
