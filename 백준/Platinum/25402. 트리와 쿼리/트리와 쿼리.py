@@ -1,5 +1,6 @@
 import sys
 from collections import deque
+sys.setrecursionlimit(10**6)
 input = sys.stdin.readline
 
 N = int(input())
@@ -33,7 +34,7 @@ def find(node):
 def union(u, v):
     u, v = find(u), find(v)
     if u == v:
-        pass
+        return
     if size[u] > size[v]:
         u, v = v, u
     parent[v] = u
@@ -65,7 +66,6 @@ for i in range(Q):
 
     print(answer)
     rollback(S)
-    
     
 
 '''
