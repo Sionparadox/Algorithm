@@ -24,9 +24,11 @@ class Trie:
         curr.is_finish = True
         curr.word = line
     
-def backtrack(r, c, node):
+def backtrack(r, c, node, depth):
     if node.is_finish:
         words.add(node.word)
+    if depth == 8:
+        return
     
     for dr, dc in directions:
         nr, nc = r+dr, c+dc
@@ -38,7 +40,7 @@ def backtrack(r, c, node):
         nxt = board[nr][nc]
         if nxt in node.children:
             visited[nr][nc] = True
-            backtrack(nr, nc, node.children[nxt])
+            backtrack(nr, nc, node.children[nxt], depth+1)
             visited[nr][nc] = False
         
 
@@ -62,7 +64,7 @@ for b in range(B):
             ch = board[r][c]
             if ch in trie.root.children:
                 visited[r][c] = True
-                backtrack(r, c, trie.root.children[ch])
+                backtrack(r, c, trie.root.children[ch], 1)
                 visited[r][c] = False
     word_list = sorted(list(words), key = lambda x:(-len(x), x))
     sc = sum(score[len(x)] for x in word_list)
