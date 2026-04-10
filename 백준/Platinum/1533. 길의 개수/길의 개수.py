@@ -5,7 +5,7 @@ MOD = 1_000_003
 N, S, E, T = map(int, input().split())
 matrix = [list(map(int, list(input().strip()))) for _ in range(N)]
 S, E = S-1, E-1
-M = 5
+M = max(max(max(row) for row in matrix), 1)
 
 SIZE = N*M
 mat = [[0]*SIZE for _ in range(SIZE)]
