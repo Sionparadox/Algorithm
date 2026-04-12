@@ -1,0 +1,5 @@
+H, M, S = map(int, input().split())
+seconds = H*60*60 + M*60 + S + int(input())
+minutes, second = divmod(seconds, 60)
+hour, minute = divmod(minutes, 60)
+print(hour%24, minute, second)
