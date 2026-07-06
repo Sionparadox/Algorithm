@@ -1,0 +1,80 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.ArrayDeque;
+import java.util.StringTokenizer;
+
+public class Solution {
+    static int N;
+    static int[][] board;
+    static boolean[][][] visited;
+    static int ex, ey;
+    static final int[] DR = {-1, 1, 0, 0, 0};
+    static final int[] DC = {0, 0, -1, 1, 0};
+
+    public static void main(String[] args) throws Exception {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int T = Integer.parseInt(br.readLine());
+
+        for (int tc = 1; tc <= T; tc++) {
+            N = Integer.parseInt(br.readLine());
+            board = new int[N][N];
+
+            for (int r = 0; r < N; r++) {
+                StringTokenizer st = new StringTokenizer(br.readLine());
+                for (int c = 0; c < N; c++) {
+                    board[r][c] = Integer.parseInt(st.nextToken());
+                }
+            }
+
+            StringTokenizer st = new StringTokenizer(br.readLine());
+            int sx = Integer.parseInt(st.nextToken());
+            int sy = Integer.parseInt(st.nextToken());
+            st = new StringTokenizer(br.readLine());
+            ex = Integer.parseInt(st.nextToken());
+            ey = Integer.parseInt(st.nextToken());
+
+            visited = new boolean[N][N][3];
+            visited[sx][sy][0] = true;
+
+            ArrayDeque<int[]> queue = new ArrayDeque<>();
+            queue.offer(new int[]{sx, sy, 0});
+            int answer = -1;
+
+            while (!queue.isEmpty()) {
+                int[] curr = queue.poll();
+                int r = curr[0];
+                int c = curr[1];
+                int time = curr[2];
+
+                if (r == ex && c == ey) {
+                    answer = time;
+                    break;
+                }
+
+                for (int d = 0; d < 5; d++) {
+                    int nr = r + DR[d];
+                    int nc = c + DC[d];
+                    int nt = time + 1;
+
+                    if (nr < 0 || nr >= N || nc < 0 || nc >= N) {
+                        continue;
+                    }
+                    if (visited[nr][nc][nt % 3]) {
+                        continue;
+                    }
+                    if (board[nr][nc] == 1) {
+                        continue;
+                    }
+                    if (time % 3 != 2 && board[nr][nc] == 2 && d != 4) {
+                        continue;
+                    }
+
+                    visited[nr][nc][nt % 3] = true;
+                    queue.offer(new int[]{nr, nc, nt});
+                }
+            }
+
+            System.out.println("#" + tc + " " + answer);
+        }
+    }
+}
