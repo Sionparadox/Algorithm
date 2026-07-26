@@ -2,14 +2,25 @@ import os
 import subprocess
 from pathlib import Path
 import re
-import codecs
+import json
 from datetime import datetime
 import html
+
+EMPTY_SHA = '0' * 40
+SUPPORTED_PLATFORMS = {'백준', 'SWEA', '프로그래머스'}
+SUPPORTED_EXTENSIONS = {'.py', '.java', '.js', '.ts'}
+LANG_BY_EXT = {
+    '.py': 'python',
+    '.java': 'java',
+    '.js': 'javascript',
+    '.ts': 'typescript',
+}
 
 def get_changed_files():
     before = os.environ.get('GITHUB_BASE_SHA')
     after = os.environ.get('GITHUB_SHA')
-    if not before or not after:
+    # push 이벤트 before가 없거나 새 브랜치(전부 0)면 직전 커밋과 비교
+    if not before or before == EMPTY_SHA or not after:
         before = 'HEAD^'
         after = 'HEAD'
     result = subprocess.run(
@@ -25,21 +36,14 @@ def get_changed_files():
 
 def find_problem_pairs(changed_files):
     for f in changed_files:
-        # 유니코드 이스케이프 해제 시도 (필요시)
-        try:
-            # 만약 경로에 \xxx 형태가 있으면 디코딩
-            if '\\' in f:
-                f_decoded = codecs.decode(f, 'unicode_escape')
-            else:
-                f_decoded = f
-        except Exception:
-            f_decoded = f
-        parts = Path(f_decoded).parts
+        path = Path(f)
+        parts = path.parts
         if len(parts) < 4: continue
-        if parts[0] != '백준': continue
-        if not f_decoded.endswith('.py'): continue
+        platform = parts[0]
+        if platform not in SUPPORTED_PLATFORMS: continue
+        if path.suffix.lower() not in SUPPORTED_EXTENSIONS: continue
         level, problem, filename = parts[1], parts[2], parts[3]
-        yield Path('백준') / level / problem, filename
+        yield Path(platform) / level / problem, filename
 
 def merge_code_to_readme(readme_path, code_path):
     if not readme_path.exists() or not code_path.exists():
@@ -50,8 +54,8 @@ def merge_code_to_readme(readme_path, code_path):
         code = f.read().rstrip()
     if '### 풀이' in content:
         content = content.split('### 풀이')[0].rstrip()
-    # 마크다운 코드 블록으로 변경
-    merged = f"{content}\n\n### 풀이\n```python\n{code}\n```\n"
+    lang = LANG_BY_EXT.get(code_path.suffix.lower(), '')
+    merged = f"{content}\n\n### 풀이\n```{lang}\n{code}\n```\n"
     with open(readme_path, 'w', encoding='utf-8') as f:
         f.write(merged)
     return True
@@ -160,12 +164,12 @@ def export_readme_to_number_md(readme_path):
                 tags = [tag.strip() for tag in tags_line.split(',')]
             break
     
-    # 메타데이터 생성
+    # 메타데이터 생성 (JSON으로 이스케이프해 제목/태그의 따옴표 등 안전하게 처리)
     metadata = f"""export const metadata = {{
-  title: '{title}',
-  date: '{current_date}',
-  tags: {tags},
-  description: '{title}',
+  title: {json.dumps(title, ensure_ascii=False)},
+  date: {json.dumps(current_date, ensure_ascii=False)},
+  tags: {json.dumps(tags, ensure_ascii=False)},
+  description: {json.dumps(title, ensure_ascii=False)},
 }};
 
 """
