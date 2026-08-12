@@ -1,27 +1,18 @@
-WITH EMP_GRADE as (
-    SELECT EMP_NO,
-        CASE
-            WHEN sum(SCORE)/COUNT(EMP_NO) >= 96 THEN 'S'
-            WHEN sum(SCORE)/COUNT(EMP_NO) >= 90 THEN 'A'
-            WHEN sum(SCORE)/COUNT(EMP_NO) >= 80 THEN 'B'
-            ELSE 'C'
-        END as GRADE,
-        CASE
-            WHEN sum(SCORE)/COUNT(EMP_NO) >= 96 THEN 0.2
-            WHEN sum(SCORE)/COUNT(EMP_NO) >= 90 THEN 0.15
-            WHEN sum(SCORE)/COUNT(EMP_NO) >= 80 THEN 0.1
-            ELSE 0
-        END as EXTRA
-    FROM HR_GRADE
-    GROUP BY EMP_NO
-)
-
-SELECT he.EMP_NO, EMP_NAME, GRADE, SAL*EXTRA as BONUS
+SELECT he.EMP_NO, EMP_NAME,
+    CASE 
+        WHEN AVG(SCORE) >= 96 THEN 'S'
+        WHEN AVG(SCORE) >= 90 THEN 'A'
+        WHEN AVG(SCORE) >= 80 THEN 'B'
+        ELSE 'C'
+    END "GRADE",
+    CASE 
+        WHEN AVG(SCORE) >= 96 THEN SAL*0.2
+        WHEN AVG(SCORE) >= 90 THEN SAL*0.15
+        WHEN AVG(SCORE) >= 80 THEN SAL*0.1
+        ELSE 0
+    END "GRADE"
 FROM HR_EMPLOYEES he
-JOIN EMP_GRADE eg
-ON he.EMP_NO = eg.EMP_NO
-
-
-# SELECT EMP_NO, sum(SCORE)/COUNT(EMP_NO) as GRADE
-# FROM HR_GRADE
-# GROUP BY EMP_NO
+JOIN HR_GRADE hg
+ON he.EMP_NO = hg.EMP_NO
+GROUP BY he.EMP_NO
+ORDER BY 1 asc;
