@@ -1,6 +1,7 @@
 name: Post to Blog
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -21,6 +22,7 @@ jobs:
         env:
           GITHUB_BASE_SHA: ${{ github.event.before }}
           GITHUB_SHA: ${{ github.sha }}
+          REBUILD_ALL: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           python .github/scripts/post.py
           echo "=== Debug: Listing md_output directory ==="
@@ -65,9 +67,22 @@ jobs:
         run: |
           echo "=== Debug: Before copying ==="
           ls -la mdx-files
-          cp mdx-files/*.mdx blog/posts/Problems/ || echo "No .mdx files found"
+          cp mdx-files/*.mdx blog/posts/Problems/
           echo "=== Debug: After copying ==="
           ls -la blog/posts/Problems/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: blog/package-lock.json
+
+      - name: Validate blog build
+        working-directory: blog
+        run: |
+          npm ci
+          npm run build
 
       - name: Commit & Push
         run: |
@@ -75,5 +90,9 @@ jobs:
           git config user.name "Sionparadox"
           git config user.email "sion9999@naver.com"
           git add posts/Problems/
+          if git diff --cached --quiet; then
+            echo "No post changes to commit."
+            exit 0
+          fi
           git commit -m "Add new solved problem post"
           git push

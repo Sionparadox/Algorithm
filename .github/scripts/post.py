@@ -60,7 +60,29 @@ def merge_code_to_readme(readme_path, code_path):
         f.write(merged)
     return True
 
+def transform_outside_code(content, transform):
+    """펜스 코드와 인라인 코드는 원문 그대로 보존한다."""
+    pattern = re.compile(
+        r'(^ {0,3}(?P<fence>`{3,}|~{3,})[^\n]*\n'
+        r'.*?^ {0,3}(?P=fence)[ \t]*(?=\n|$))'
+        r'|(?P<ticks>`+)(?!`)[^\n]*?(?<!`)(?P=ticks)(?!`)',
+        re.MULTILINE | re.DOTALL,
+    )
+    parts = []
+    start = 0
+    for match in pattern.finditer(content):
+        parts.append(transform(content[start:match.start()]))
+        parts.append(match.group())
+        start = match.end()
+    parts.append(transform(content[start:]))
+    return ''.join(parts)
+
+
 def convert_html_to_markdown(content):
+    return transform_outside_code(content, convert_html_text).strip()
+
+
+def convert_html_text(content):
     # MathJax 관련 태그 제거
     content = re.sub(r'<mjx-container[^>]*>.*?</mjx-container>', '', content, flags=re.DOTALL)
     content = re.sub(r'<mjx-math[^>]*>.*?</mjx-math>', '', content, flags=re.DOTALL)
@@ -95,7 +117,7 @@ def convert_html_to_markdown(content):
     content = re.sub(r'<strong>그림\s*(\d+)</strong>:\s*(.*?)(?=<|$)', r'**그림 \1**: \2', content, flags=re.DOTALL)
     
     # 모든 HTML 태그 제거 (단, 이미지와 그림 설명은 이미 처리됨)
-    content = re.sub(r'<[^>]+>', '', content)
+    content = re.sub(r'</?[A-Za-z][\w:-]*(?:\s+[^<>]*?)?\s*/?>', '', content)
     
     # HTML 엔티티 디코딩
     content = html.unescape(content)
@@ -103,31 +125,18 @@ def convert_html_to_markdown(content):
     # 연속된 빈 줄 제거 (최대 2개로)
     content = re.sub(r'\n{3,}', '\n\n', content)
     
-    # 앞뒤 공백 제거
-    content = content.strip()
-
     return content
 
-def escape_curly_for_mdx(content):
-    """MDX에서 중괄호가 JSX로 인식되지 않도록 코드 블록/인라인 코드 밖에서만 이스케이프"""
-    fence_parts = re.split(r'(```[\s\S]*?```)', content)
-    escaped_parts = []
-
-    for part in fence_parts:
-        if part.startswith('```') and part.endswith('```'):
-            escaped_parts.append(part)
-            continue
-
-        inline_parts = re.split(r'(`[^`\n]+`)', part)
-        for inline in inline_parts:
-            if inline.startswith('`') and inline.endswith('`'):
-                escaped_parts.append(inline)
-            else:
-                inline = re.sub(r'(?<!\\)\{', r'\\{', inline)
-                inline = re.sub(r'(?<!\\)\}', r'\\}', inline)
-                escaped_parts.append(inline)
-
-    return ''.join(escaped_parts)
+def escape_text_for_mdx(content):
+    """본문의 <와 중괄호가 JSX로 해석되지 않도록 이스케이프한다."""
+    def escape(text):
+        # 짝수 개의 역슬래시 뒤에서는 문자가 아직 이스케이프되지 않았다.
+        return re.sub(
+            r'(\\*)([<{}])',
+            lambda m: m[1] + ('\\' if len(m[1]) % 2 == 0 else '') + m[2],
+            text,
+        )
+    return transform_outside_code(content, escape)
 
 def export_readme_to_number_md(readme_path):
     print(f"\n=== Exporting README to number.mdx ===")
@@ -189,7 +198,7 @@ def export_readme_to_number_md(readme_path):
     print(f"Writing to: {md_path}")
     
     # MDX에서 중괄호가 JSX로 인식되지 않도록 이스케이프
-    content = escape_curly_for_mdx(content)
+    content = escape_text_for_mdx(content)
 
     # 메타데이터와 원본 내용을 합쳐서 작성
     with open(md_path, 'w', encoding='utf-8') as f:
@@ -201,7 +210,15 @@ def main():
     print(f"Current working directory: {os.getcwd()}")
     print(f"GITHUB_WORKSPACE: {os.environ.get('GITHUB_WORKSPACE', '.')}")
     
-    changed_files = get_changed_files()
+    if os.environ.get('REBUILD_ALL') == 'true':
+        changed_files = [
+            str(path)
+            for platform in sorted(SUPPORTED_PLATFORMS)
+            for path in sorted(Path(platform).rglob('*'))
+            if path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS
+        ]
+    else:
+        changed_files = get_changed_files()
     print(f"Changed files: {changed_files}")
     
     for problem_path, code_filename in find_problem_pairs(changed_files):
