@@ -79,6 +79,23 @@ def transform_outside_code(content, transform):
 
 
 def convert_html_to_markdown(content):
+    def convert_pre_blocks(text):
+        def replace_pre(match):
+            # 예제 HTML은 본문으로 풀면 URL 자동 링크와 JSX 파싱이 충돌한다.
+            # 구문 강조용 span만 제거하고, 코드 내용은 펜스 안에 보존한다.
+            code = re.sub(r'</?span\b[^>]*>', '', match.group(1))
+            code = html.unescape(code).strip('\n')
+            fence = '`' * max(3, 1 + max(
+                (len(run) for run in re.findall(r'`+', code)), default=0
+            ))
+            return f'\n\n{fence}text\n{code}\n{fence}\n\n'
+
+        return re.sub(
+            r'<pre\b[^>]*>\s*<code\b[^>]*>(.*?)</code>\s*</pre>',
+            replace_pre, text, flags=re.DOTALL,
+        )
+
+    content = transform_outside_code(content, convert_pre_blocks)
     return transform_outside_code(content, convert_html_text).strip()
 
 
